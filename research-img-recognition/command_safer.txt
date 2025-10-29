@@ -1,0 +1,15 @@
+export TF_GPU_ALLOCATOR=cuda_malloc
+export XLA_FLAGS=--xla_gpu_strict_conv_algorithm_picker=false
+export TF_CUDNN_WORKSPACE_LIMIT_IN_MB=64
+export TF_CUDNN_USE_AUTOTUNE=0
+export TF_DETERMINISTIC_OPS=1
+export TF_XLA_FLAGS=--tf_xla_auto_jit=0
+
+source venv/bin/activate
+python make_nn.py --text_dir input_images_train --bars_dir bars_targets_train
+
+# OR JUST RUN:
+./run_training_safe.sh
+
+# OR:
+./run_training_safe.sh -- --patch_h 512 --patch_w 512 --disable_dropout

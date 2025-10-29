@@ -1,0 +1,36 @@
+# ===== TensorFlow GPU run commands (recommended) =====
+# Run these in a fresh terminal from the project root BEFORE training
+
+# 0) Optional: enable GPU persistence (keeps driver context warm)
+# sudo nvidia-smi -pm 1
+
+# 1) Use a simple CUDA allocator (avoid async allocator issues)
+unset TF_GPU_ALLOCATOR
+export TF_GPU_ALLOCATOR=cuda_malloc
+
+# 2) Let cuDNN fall back to smaller-memory conv algorithms instead of failing autotune
+export XLA_FLAGS=--xla_gpu_strict_conv_algorithm_picker=false
+
+# 3) Cap cuDNN workspace to reduce peak memory (adjust to 64/128/256 if needed)
+export TF_CUDNN_WORKSPACE_LIMIT_IN_MB=64
+
+# 4) Disable XLA JIT fully (guard against precision/allocator edge cases)
+export TF_XLA_FLAGS=--tf_xla_auto_jit=0
+
+# 5) Optional: clear TF state between runs
+python -c "import tensorflow as tf; tf.keras.backend.clear_session()"
+
+# 6) Activate venv and run training
+source venv/bin/activate
+python make_nn.py --text_dir input_images_train --bars_dir bars_targets_train
+
+# ===== If you still see OOM =====
+# Lower workspace cap further (slower but smaller memory):
+# export TF_CUDNN_WORKSPACE_LIMIT_IN_MB=64
+# Then run again:
+# python make_nn.py --text_dir input_images_train --bars_dir bars_targets_train
+
+# ===== Notes =====
+# - Close GPU-heavy apps (browsers, video, etc.) to free VRAM.
+# - You can check GPU state with: nvidia-smi
+# - No model parameter changes are required for these runtime settings.
