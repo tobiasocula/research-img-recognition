@@ -31,14 +31,29 @@ def translate_image(image_path, shift_x, shift_y, target_size=(256, 256)):
     resized = cv2.resize(canvas, target_size, interpolation=cv2.INTER_AREA)
 
     return resized
-
-target = Path.cwd() / "input_img_cropped_modified"
-img_path = Path.cwd() / "input_images_train_cropped"
+"""
+# for images
+t = "research-img-recognition"
+target = Path.cwd() / t / t / "input_img_cropped_modified"
+img_path = Path.cwd() / t / t / "input_images_train_cropped"
 for dir in img_path.iterdir():
     c = 0
     img = cv2.imread(dir)
     for y in range(-50, 50, 25):
         translated = translate_image(img_path / dir.name, 0, y)
         k = dir.name.split('.')
-        cv2.imwrite(target / f"{k[0]}_translated_{c}_.png", translated)
+        cv2.imwrite(target / f"{k[0]}_translated_{c}.png", translated)
+        c += 1
+"""
+# for bars
+t = "research-img-recognition"
+target = Path.cwd() / t / t / "bars_img_cropped_modified"
+img_path = Path.cwd() / t / t / "bars_targets_train_cropped"
+for dir in img_path.iterdir():
+    c = 0
+    img = cv2.imread(dir)
+    for y in range(-50, 50, 25):
+        translated = translate_image(img_path / dir.name, 0, y)
+        k = dir.name.split('.')
+        cv2.imwrite(target / f"{k[0]}_translated_{c}.png", translated)
         c += 1

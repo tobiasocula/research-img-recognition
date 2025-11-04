@@ -7,6 +7,14 @@ from typing import Tuple, List, Iterable, Iterator
 
 from loss_and_score_funcs import *
 
+@register_keras_serializable()
+def resize_with_tf(tensors):
+    return tf.image.resize(
+        tensors[0],
+        [tf.shape(tensors[1])[1], tf.shape(tensors[1])[2]],
+        method=tf.image.ResizeMethod.BILINEAR,
+    )
+
 import numpy as np
 import tensorflow as tf
 
@@ -79,11 +87,7 @@ def build_unet(
         x = tf.keras.layers.Conv2DTranspose(filters, 2, strides=2, padding="same")(x)
         # Resize skip using both tensors to avoid symbolic shape issues in Lambda
         skip_resized = tf.keras.layers.Lambda(
-            lambda tensors: tf.image.resize(
-                tensors[0],
-                [tf.shape(tensors[1])[1], tf.shape(tensors[1])[2]],
-                method=tf.image.ResizeMethod.BILINEAR,
-            ),
+            resize_with_tf,
             output_shape=lambda shapes: (None, shapes[1][1], shapes[1][2], shapes[0][3])
         )([skip, x])
         x = tf.keras.layers.Concatenate()([x, skip_resized])
@@ -93,11 +97,7 @@ def build_unet(
     outputs = tf.keras.layers.Conv2D(output_channels, 1, activation="sigmoid")(x)
     # Ensure model outputs match the input spatial dimensions exactly
     outputs = tf.keras.layers.Lambda(
-        lambda tensors: tf.image.resize(
-            tensors[0],
-            [tf.shape(tensors[1])[1], tf.shape(tensors[1])[2]],
-            method=tf.image.ResizeMethod.BILINEAR,
-        ),
+        resize_with_tf,
         output_shape=lambda shapes: (None, shapes[1][1], shapes[1][2], shapes[0][3])
     )([outputs, inputs])
     return tf.keras.Model(inputs, outputs, name="unet_vertical_bars")
@@ -154,12 +154,25 @@ def get_matched_paths(text_dir: Path, bars_dir: Path) -> Tuple[List[str], List[s
     # bar_paths = [os.path.join(bars_dir, bar_by_number[num]) for num in common_numbers]
     
     # return text_paths, bar_paths
-    text_paths = [str(Path(text_dir) / f"Ltype{i}.png") for i in range(1, 23)]
-    bar_paths = [str(Path(bars_dir) / f"Lbarc{i}.png") for i in range(1, 23)]
-    # print('text dir:', text_dir)
-    # text_paths = [k.name for k in text_dir.iterdir()]
-    # bar_paths = [k.name for k in bars_dir.iterdir()]
-    # print('text paths:', text_paths)
+    # FOR STANDARD IMPLEMENTATION
+    #text_paths = [str(Path(text_dir) / f"Ltype{i}.png") for i in range(1, 23)]
+    #bar_paths = [str(Path(bars_dir) / f"Lbarc{i}.png") for i in range(1, 23)]
+    
+    # FOR ALT IMPLEMENTATION
+    text_paths = []
+    bar_paths = []
+    types = ["rotated", "scaled", "translated"]
+    amounts = [5, 4, 4]
+    for t, a in zip(types, amounts):
+        for k in range(1, 23):
+            for a_count in range(a):
+                d = Path(text_dir) / f"Ltype{k}_{t}_{a_count}.png"
+                text_paths.append(str(d))
+                d = Path(bars_dir) / f"Lbarc{k}_{t}_{a_count}.png"
+                bar_paths.append(str(d))
+    print('returning:')
+    print('text paths:'); print(text_paths)
+    print('bar paths:'); print(bar_paths)
     return text_paths, bar_paths
 
 
@@ -239,7 +252,7 @@ def split_paths(
     text_paths: List[str], bar_paths: List[str], pct_train: float
 ) -> Tuple[List[str], List[str], List[str], List[str]]:
     """Split matched file lists into train/val using a fraction of training data."""
-    print('inputted to split paths:', text_paths)
+    #print('inputted to split paths:', text_paths)
     n = len(text_paths)
     idx = int(n * pct_train)
     return text_paths[:idx], bar_paths[:idx], text_paths[idx:], bar_paths[idx:]
@@ -356,7 +369,7 @@ def main():
     pct_train_datas = [0.9]
     base_filters_list = [64, 128] # Number of filters in first layer
     depths = [5, 6] # U-Net depth (downsampling levels)
-    dropouts = [0.1, 0.2] # regularization
+    dropouts = [0.1] # regularization
 
     # training
     lrs = [1e-3] # learning rate

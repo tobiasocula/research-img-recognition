@@ -33,8 +33,10 @@ def rotate_image(image_path, angle, expand_canvas=False):
 
 from pathlib import Path
 
-target = Path.cwd() / "input_img_cropped_modified"
-img_path = Path.cwd() / "input_images_train_cropped"
+# for images
+t = "research-img-recognition"
+target = Path.cwd() / t / t / "input_img_cropped_modified"
+img_path = Path.cwd() / t / t / "input_images_train_cropped"
 for dir in img_path.iterdir():
     c = 0
     img = cv2.imread(dir)
@@ -43,3 +45,17 @@ for dir in img_path.iterdir():
         k = dir.name.split('.')
         cv2.imwrite(target / f"{k[0]}_rotated_{c}.png", translated)
         c += 1
+"""
+# for bars
+t = "research-img-recognition"
+target = Path.cwd() / t / t / "bars_img_cropped_modified"
+img_path = Path.cwd() / t / t / "bars_targets_train_cropped"
+for dir in img_path.iterdir():
+    c = 0
+    img = cv2.imread(dir)
+    for angle in range(-45, 44, 22):
+        translated = rotate_image(img_path / dir.name, angle)
+        k = dir.name.split('.')
+        cv2.imwrite(target / f"{k[0]}_rotated_{c}.png", translated)
+        c += 1
+"""

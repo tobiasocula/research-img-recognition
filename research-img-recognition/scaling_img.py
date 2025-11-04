@@ -28,8 +28,10 @@ def scale_text_image(image_path, scale_factor, target_size=(256, 256)):
 from pathlib import Path
 import numpy as np
 
-target = Path.cwd() / "input_img_cropped_modified"
-img_path = Path.cwd() / "input_images_train_cropped"
+# for images
+t = "research-img-recognition"
+target = Path.cwd() / t / t / "input_img_cropped_modified"
+img_path = Path.cwd() / t / t / "input_images_train_cropped"
 for dir in img_path.iterdir():
     c = 0
     img = cv2.imread(dir)
@@ -38,3 +40,17 @@ for dir in img_path.iterdir():
         k = dir.name.split('.')
         cv2.imwrite(target / f"{k[0]}_scaled_{c}.png", translated)
         c += 1
+"""
+# for bars
+t = "research-img-recognition"
+target = Path.cwd() / t / t / "bars_img_cropped_modified"
+img_path = Path.cwd() / t / t / "bars_targets_train_cropped"
+for dir in img_path.iterdir():
+    c = 0
+    img = cv2.imread(dir)
+    for sc in np.linspace(0.4, 0.9, 4):
+        translated = scale_text_image(img_path / dir.name, sc)
+        k = dir.name.split('.')
+        cv2.imwrite(target / f"{k[0]}_scaled_{c}.png", translated)
+        c += 1
+"""

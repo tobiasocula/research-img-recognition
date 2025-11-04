@@ -2,6 +2,14 @@ import tensorflow as tf
 from keras.saving import register_keras_serializable
 
 @register_keras_serializable()
+def resize_with_tf(tensors):
+    return tf.image.resize(
+        tensors[0],
+        [tf.shape(tensors[1])[1], tf.shape(tensors[1])[2]],
+        method=tf.image.ResizeMethod.BILINEAR,
+    )
+
+@register_keras_serializable()
 def dice_coef(y_true: tf.Tensor, y_pred: tf.Tensor, smooth: float = 1.0) -> tf.Tensor:
     """Dice coefficient (overlap) between predicted and target masks."""
     y_true_f = tf.reshape(y_true, [tf.shape(y_true)[0], -1])
